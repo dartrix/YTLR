@@ -2,7 +2,10 @@ var ffmpeg = require('fluent-ffmpeg');
 var fs = require('fs');
 var config = require('./config.json');
 
-
+// ffmpeg for windows
+// ffmpeg.setFfmpegPath('bin/ffmpeg.exe');
+// ffmpeg.setFfprobePath('bin/ffplay.exe');
+// ffmpeg.setFlvtoolPath('bin/flvtool2.exe');
 
 var rtmp = config.youtubeURL + '/' + config.youtubeKey;
 var files = fs.readdirSync(config.musicfolder);
@@ -17,7 +20,7 @@ stream(number);
 
 
 function stream(i){
-  ffmpeg(`music/${files[i]}.mp3`).withVideoCodec('libx264').withAudioCodec('libmp3lame')
+  ffmpeg(`${config.musicfolder}/${files[i]}.mp3`).withVideoCodec('libx264').withAudioCodec('libmp3lame')
   .withAudioChannels(2).withAudioBitrate('128k')
   .addInput(img +'/image%d.png').size('1280x720').aspect('16:9').videoFilters({
     filter: 'drawtext',
@@ -36,11 +39,14 @@ function stream(i){
   .toFormat('flv')
   .addOptions(['-preset veryfast',
   '-g 50', '-keyint_min 60', '-maxrate 3000k','-b:v 512k', '-crf 25',
-  '-bufsize 3000k', '-ar 44100', '-pix_fmt yuv420p','-shortest','-tune zerolatency']).on('start', function(it){
+  '-bufsize 3000k', '-ar 44100', '-pix_fmt yuv420p','-shortest','-tune zerolatency'])
+  .on('start', function(it){
     return console.log('FFmpeg start with ' + it);
-  }).on('progress', function(progress){
+  })
+  .on('progress', function(progress){
     return console.log('FFmpeg in '+progress.timemark);
-  }).on('end', function(){
+  })
+  .on('end', function(){
     number += 1;
     if (number < files.length) {
       stream(number);
@@ -49,15 +55,9 @@ function stream(i){
       stream(number);
     }
     return console.log('FFmpeg end.');
-  }).save(rtmp).on('error', function(err, stdout, stderr) {
-      console.log('Cannot process video: ' + err.message + '\n\n' + stdout + '\n\n'+ stderr);
-      number += 1;
-    if (number < files.length) {
-      stream(number);
-    } else{
-      number = 0;
-      stream(number);
-    }
+  })
+  .save(rtmp).on('error', function(err, stdout, stderr) {
+    console.log('Cannot process video: ' + err.message + '\n\n' + stdout + '\n\n'+ stderr);
     });
 }
 
