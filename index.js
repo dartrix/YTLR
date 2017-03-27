@@ -67,5 +67,3 @@ function stream(i){
 
 // .withAudioBitrate('712k')
 // .withAudioFrequency(48000)
-// rtmp://a.rtmp.youtube.com/live2/vz2f-6m0p-yxdh-b0hw
-//{source: 'music/Vanilla - Swept Away.mp3'}
